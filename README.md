@@ -23,8 +23,8 @@ API RESTful para gestión de productos y autenticación de usuarios, construida 
 
 1. Clonar el repositorio
     ```bash
-    git clone <url-del-repositorio>
-    cd api-fudo
+    git clone https://github.com/ser89/products-api
+    cd products-api
     ```
 2. Instalar dependencias
     ```bash
@@ -39,8 +39,8 @@ API RESTful para gestión de productos y autenticación de usuarios, construida 
 
 1. Clonar el repositorio
     ```bash
-    git clone <url-del-repositorio>
-    cd api-fudo
+    git clone https://github.com/ser89/products-api
+    cd products-api
     ```
 2. Construir e iniciar los contenedores
     ```bash
