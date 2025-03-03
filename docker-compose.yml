@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
+    environment:
+      - RACK_ENV=development
+    command: bundle exec rackup -p 3000 -o 0.0.0.0
+  tests:
+    build: .
+    volumes:
+      - .:/app:cached
+      - bundle_cache:/usr/local/bundle:cached
+    environment:
+      - RACK_ENV=test
+    command: bundle exec rspec
+
+volumes:
+  bundle_cache:

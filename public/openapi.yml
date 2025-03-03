@@ -1,0 +1,404 @@
+openapi: 3.0.3
+info:
+  title: API Fudo
+  description: API para gestión de productos y autenticación de usuarios
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desarrollo
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          example: 'usuario'
+          minLength: 3
+          description: Nombre de usuario
+        password:
+          type: string
+          example: 'contraseña'
+          minLength: 8
+          format: password
+          description: Contraseña del usuario
+      required:
+        - username
+        - password
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: Identificador único del producto
+        name:
+          type: string
+          example: 'Producto 1'
+          description: Nombre del producto
+      required:
+        - name
+
+    Error:
+      oneOf:
+        - type: object
+          properties:
+            error:
+              type: string
+              description: Mensaje de error único
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                type: string
+              description: Lista de errores de validación
+
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensaje informativo
+
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: _api_session
+      description: Sesión de usuario requerida para autenticación
+
+  responses:
+    Unauthorized:
+      description: No autorizado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: 'You need to sign in before continuing'
+
+paths:
+  /users/sign_up:
+    post:
+      summary: Registrar nuevo usuario
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: 'User created successfully'
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                validation_error:
+                  value:
+                    errors: [
+                      'Username is required',
+                      'Username must be at least 3 characters long',
+                      'Password is required',
+                      'Password must be at least 8 characters long'
+                    ]
+                invalid_json:
+                  value:
+                    error: 'Invalid JSON format'
+        '422':
+          description: Usuario existente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'User already exists'
+
+  /users/sign_in:
+    post:
+      summary: Iniciar sesión
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: 'Login successful'
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                validation_error:
+                  value:
+                    errors: [
+                      'Username is required',
+                      'Username must be at least 3 characters long',
+                      'Password is required',
+                      'Password must be at least 8 characters long'
+                    ]
+                invalid_json:
+                  value:
+                    error: 'Invalid JSON format'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: 'Invalid credentials'
+
+  /users/sign_out:
+    delete:
+      summary: Cerrar sesión
+      tags:
+        - users
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Sesión cerrada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: 'Logout successful'
+
+  /products:
+    get:
+      summary: Listar todos los productos
+      tags:
+        - products
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Lista de productos obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear un nuevo producto
+      tags:
+        - products
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+      responses:
+        '202':
+          description: Producto en proceso de creación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: 'Product creation in progress'
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                parse_error:
+                  value:
+                    error: 'Invalid JSON format'
+                type_error:
+                  value:
+                    error: 'Product name is required'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: Producto ya existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Product name already exists'
+
+  /products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        example: 1
+        schema:
+          type: integer
+        description: ID del producto
+
+    get:
+      summary: Obtener un producto específico
+      tags:
+        - products
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: '#/components/schemas/Product'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Product not found'
+
+    delete:
+      summary: Eliminar un producto
+      tags:
+        - products
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Producto eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: 'Product deleted successfully'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Product not found'
+  /AUTHORS:
+    get:
+      summary: Obtener archivo AUTHORS
+      tags:
+        - /
+      responses:
+        '200':
+          description: Archivo AUTHORS obtenido exitosamente
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: 'public, max-age=86400'
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Sebastián Rosales
+
+  /openapi.yml:
+    get:
+      summary: Obtener especificación OpenAPI
+      tags:
+        - /
+      responses:
+        '200':
+          description: Especificación OpenAPI obtenida exitosamente
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: 'application/yaml'
+            Cache-Control:
+              schema:
+                type: string
+                example: 'no-store, no-cache, must-revalidate'
+            Pragma:
+              schema:
+                type: string
+                example: 'no-cache'
+            Expires:
+              schema:
+                type: string
+                example: '0'
+          content:
+            application/yaml:
+              schema:
+                type: object
+                properties:
+                  openapi:
+                    type: string
+                    example: 3.0.3
+                  info:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                        example: API Fudo
+                      description: 
+                        type: string
+                        example: API para gestión de productos y autenticación de usuarios
+                      version:
+                        type: string
+                        example: 1.0.0
+                  servers:
+                    type: object
+                    example: ...
+
+tags:
+  - name: users
+    description: Operaciones de autenticación y gestión de usuarios
+  - name: products
+    description: Operaciones relacionadas con productos
+  - name: /
+    description: Archivos estáticas

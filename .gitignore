@@ -1,0 +1,9 @@
+.DS_Store
+.env
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+.byebug_history
+coverage/
+.idea/
