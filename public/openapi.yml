@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: API Fudo
+  title: Products API
   description: API para gestión de productos y autenticación de usuarios
   version: 1.0.0
 
@@ -384,7 +384,7 @@ paths:
                     properties:
                       title:
                         type: string
-                        example: API Fudo
+                        example: Products API
                       description: 
                         type: string
                         example: API para gestión de productos y autenticación de usuarios

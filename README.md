@@ -1,4 +1,4 @@
-# API Fudo
+# Products API
 
 API RESTful para gestión de productos y autenticación de usuarios, construida con Ruby y Rack.
 
