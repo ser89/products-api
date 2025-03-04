@@ -16,6 +16,7 @@ API RESTful para gestión de productos y autenticación de usuarios, construida 
 
 - Ruby 3.2.2
 - Bundler
+- Docker, Docker Compose (opcional)
 
 ## 🛠️ Instalación
 
@@ -32,7 +33,7 @@ API RESTful para gestión de productos y autenticación de usuarios, construida 
     ```
 3. Iniciar el servidor
     ```bash
-    bundle exec rakeup -p 3000
+    bundle exec rackup -p 3000
     ```
 
 ### Opción 2: Docker
